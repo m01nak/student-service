@@ -33,6 +33,12 @@ public class StudentController {
 
     @PostMapping
     public ResponseEntity<Student> createStudent(@RequestBody Student student) {
+        String newId = student.getId();
+
+        if(studentService.getStudentById(newId).isPresent()) {
+            student.setId(null);
+        }
+
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(studentService.createStudent(student));
