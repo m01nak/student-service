@@ -2,7 +2,10 @@ package com.moinak.student_service.Controller;
 
 import com.moinak.student_service.Entity.Student;
 import com.moinak.student_service.Service.StudentService;
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,28 +26,39 @@ public class StudentController {
     }
 
     @GetMapping("/{id}")
-    public Student getStudentById(@PathVariable String id) {
-        return studentService.getStudentById(id).orElse(null);
+    public ResponseEntity<Student> getStudentById(@PathVariable String id) {
+        Optional<Student> student = studentService.getStudentById(id);
+        return student.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public Student createStudent(@RequestBody Student student) {
-        return studentService.createStudent(student);
+    public ResponseEntity<Student> createStudent(@RequestBody Student student) {
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(studentService.createStudent(student));
     }
 
     @PutMapping("/{id}")
-    public Student updateStudent(@PathVariable String id, @RequestBody Student studentDetails) {
-        try {
-            return studentService.updateStudent(id, studentDetails);
-        } catch (RuntimeException rte) {
-            return new Student("-1","-1",new ArrayList<String>(),"-1");
+    public ResponseEntity<Student> updateStudent(@PathVariable String id, @RequestBody Student studentDetails) {
+
+        Student updatedStudent = studentService.updateStudent(id, studentDetails);
+
+        if(updatedStudent == null) {
+            return ResponseEntity.notFound().build();
+        } else {
+            return ResponseEntity.status(HttpStatus.CREATED).body(updatedStudent);
         }
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Student> deleteStudent(@PathVariable String id) {
-        studentService.deleteStudent(id);
-        return ResponseEntity.noContent().build();
+        //if not found not 204
+        if(studentService.getStudentById(id).isPresent()) {
+            studentService.deleteStudent(id);
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
 }

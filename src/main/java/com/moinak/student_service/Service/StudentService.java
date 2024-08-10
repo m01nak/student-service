@@ -26,11 +26,17 @@ public class StudentService {
     }
 
     public Student updateStudent(String id, Student studentDetails) {
-        Student existingStudent = studentRepository.findById(id).orElseThrow(() -> new RuntimeException("Student with ID " + id + " does not exist!"));
-        existingStudent.setName(studentDetails.getName());
-        existingStudent.setSkill(studentDetails.getSkill());
-        existingStudent.setBatch(studentDetails.getBatch());
-        return studentRepository.save(existingStudent);
+        Optional<Student> optionalStudent = studentRepository.findById(id);
+
+        if (optionalStudent.isPresent()) {
+            Student existingStudent = optionalStudent.get();
+            existingStudent.setName(studentDetails.getName());
+            existingStudent.setSkill(studentDetails.getSkill());
+            existingStudent.setBatch(studentDetails.getBatch());
+            return studentRepository.save(existingStudent);
+        } else {
+            return null;
+        }
     }
 
     public void deleteStudent(String id) {
